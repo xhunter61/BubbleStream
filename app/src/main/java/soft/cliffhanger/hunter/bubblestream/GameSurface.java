@@ -28,7 +28,7 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
     private Timer timer = new Timer();
     Bitmap bubbleBitmap1, greenB, redB, yellowB,pipeB;
 
-    private Pipe pipe1;
+    private Pipe pipe1, pipe2;
 
     private Rect redlane, bluelane, greenlane;
     private Paint paintr, paintb, paintg, debugp;
@@ -82,7 +82,8 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
         canvas.drawRect(bluelane, paintb );
         canvas.drawRect(greenlane, paintg );
         pipe1.draw(canvas);
-        //canvas.drawRect(pipe1.getHitboxPipe(), debugp);
+        pipe2.draw(canvas);
+        canvas.drawRect(pipe2.getHitboxPipe(), debugp);
 
         for(Bubble bubbletemp: bubbles){
             bubbletemp.draw(canvas);
@@ -108,7 +109,8 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
         line2= this.getWidth()*0.50f;
         line3= this.getWidth()*0.75f;
 
-        pipe1= new Pipe(this, pipeB, this.getWidth()*0.375f, this.getHeight()*0.5f);
+        pipe1= new Pipe(this, pipeB, this.getWidth()*0.375f, this.getHeight()*0.5f, line1, line2);
+        pipe2= new Pipe(this, pipeB, this.getWidth()*0.625f, this.getHeight()*0.5f, line2, line3);
         Log.d("Width", Integer.toString(this.getWidth()));
         Log.d("Lines", Float.toString(line1) + " | "+ Float.toString(line2) +" | "+Float.toString(line3));
 
@@ -217,18 +219,20 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
             pipe1.setY(event.getY());
             pipe1.setHitboxPipe();
         }
+        if(pipe2.getTouched()){
+            pipe2.setY(event.getY());
+            pipe2.setHitboxPipe();
+        }
+
         switch (event.getAction()) {
             case MotionEvent.ACTION_DOWN: {
                 float posX = event.getX();
                 float posY = event.getY();
                 //Log.d("PosX", Float.toString(posX));
                 //Log.d("PosY", Float.toString(posY));
-                Log.d("Hitbox Pipe Bottom:", Integer.toString(pipe1.getHitbox().bottom));
-                Log.d("Hitbox Pipe Left:", Integer.toString(pipe1.getHitbox().left));
-                if(pipe1.getHitboxPipe().contains((int)posX, (int) posY)==true && pipe1.getTouched()!=true && !bubbletouched){
-                    pipe1.setTouched(true);
-                    Log.d("Pipe", "touched");
-                }
+                Log.d("Bubble touched", Boolean.toString(bubbletouched));
+                //Log.d("Hitbox Pipe Left:", Integer.toString(pipe1.getHitbox().left));
+
 
                 for(Bubble bubbletemp: bubbles){
                     if(bubbletemp.getHitbox().contains((int)posX, (int) posY)==true){
@@ -244,6 +248,18 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
 
                 }
 
+                if(pipe1.getHitboxPipe().contains((int)posX, (int) posY)==true && pipe1.getTouched()!=true && !bubbletouched){
+                    pipe1.setTouched(true);
+                    Log.d("Pipe", "touched");
+                }
+
+                if(pipe2.getHitboxPipe().contains((int)posX, (int) posY)==true && pipe2.getTouched()!=true && !bubbletouched){
+                    pipe2.setTouched(true);
+                    Log.d("Pipe", "touched");
+                }
+
+
+
 
                 break;
             }
@@ -256,24 +272,43 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
                 if(pipe1.getTouched()){
                     pipe1.setTouched(false);
                 }
+
+                if(pipe2.getTouched()){
+                    pipe2.setTouched(false);
+                }
                 //Log.d("DeltaX: ", Float.toString(deltaX));
                 if(Math.abs(deltaX)> MIN_DISTANCE){
-                    //swipe nach rechts
                     for(Bubble bubbletemp: bubbles){
                         if(bubbletemp.getTouched()){
                             if(bubbletemp.getHitbox().intersect(pipe1.getHitboxPipe())){
-                                if(deltaX>0){
+                                if(deltaX>0 && (bubbletemp.getCurrentLane()==pipe1.getLane0() || (bubbletemp.getCurrentLane()==pipe2.getLane0() && bubbletemp.getHitbox().intersect(pipe2.getHitboxPipe())))){
+                                    //swipe right
                                     if(bubbletemp.getCurrentLane()<this.line3){
                                         bubbletemp.swipeRight(this.getWidth()*0.25f);
                                     }
 
-                                }else if(deltaX<0){
+                                }else if(deltaX<0 &&(bubbletemp.getCurrentLane()==pipe1.getLane1() || (bubbletemp.getCurrentLane()==pipe2.getLane1() && bubbletemp.getHitbox().intersect(pipe2.getHitboxPipe())))){
+                                    //swipe left
                                     if(bubbletemp.getCurrentLane()-this.getWidth()*0.25f>0){
                                         bubbletemp.swipeLeft(this.getWidth()*0.25f);
                                     }
 
                                 }
 
+                            } else if(bubbletemp.getHitbox().intersect(pipe2.getHitboxPipe())) {
+                                if (deltaX > 0 && bubbletemp.getCurrentLane() == pipe2.getLane0()) {
+                                    //swipe right
+                                    if (bubbletemp.getCurrentLane() < this.line3) {
+                                        bubbletemp.swipeRight(this.getWidth() * 0.25f);
+                                    }
+
+                                } else if (deltaX < 0 && bubbletemp.getCurrentLane() == pipe2.getLane1()) {
+                                    //swipe left
+                                    if (bubbletemp.getCurrentLane() - this.getWidth() * 0.25f > 0) {
+                                        bubbletemp.swipeLeft(this.getWidth() * 0.25f);
+                                    }
+
+                                }
                             }
 
 

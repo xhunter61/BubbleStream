@@ -36,13 +36,18 @@ public class Pipe extends GameObject {
     private GameSurface gameSurface;
 
     private boolean touched=false;
+    private float lane0=0.0f;
+    private float lane1=0.0f;
 
 
-    public Pipe(GameSurface gameSurface, Bitmap image, float x, float y) {
+    public Pipe(GameSurface gameSurface, Bitmap image, float x, float y, float lane0, float lane1) {
         //Bitmap bitmapscaled= Bitmap.createScaledBitmap(image, 100,100,true);
         super(image, 1, 1, x, y, 0.25f, 0.35f);
 
         this.gameSurface= gameSurface;
+
+        this.lane0=lane0;
+        this.lane1=lane1;
 
 
         this.topToBottoms = new Bitmap[colCount]; // 3
@@ -102,6 +107,12 @@ public class Pipe extends GameObject {
     public void setTouched(boolean touched){ this.touched=touched;}
 
     public void setY(float y){this.y=y-this.getHeight()/2;}
+
+    public float getLane0(){ return lane0;}
+
+    public float getLane1(){ return lane1;}
+
+
 
 
 
